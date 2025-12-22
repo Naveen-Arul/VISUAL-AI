@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" >
+    <title>VisualAI - Multimodal Scene Understanding System</title>
+    <meta name="description" content="Upload an image, let AI detect objects, analyze the scene context, and generate human-readable explanations — all in real-time." >
+    <meta name="keywords" content="AI, computer vision, scene understanding, object detection, image analysis, machine learning" >
+    <meta name="author" content="VisualAI" >
+
+    <meta property="og:title" content="VisualAI - Multimodal Scene Understanding System" >
+    <meta property="og:description" content="AI-powered visual scene understanding with object detection, semantic analysis, and natural language explanations." >
+    <meta property="og:type" content="website" >
+    <meta property="og:image" content="/top.png" >
+
+    <meta name="twitter:card" content="summary_large_image" >
+    <meta name="twitter:site" content="@VisualAI" >
+    <meta name="twitter:image" content="/top.png" >
+    <link rel="icon" type="image/png" href="/top.png" >
+    <link rel="preconnect" href="https://fonts.googleapis.com" >
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin >
+    <!-- Prevent Flash of White Screen -->
+    <style>
+      body {
+        background-color: #0f0f1a !important; /* Matches dark theme background */
+        transition: background-color 0.3s ease;
+      }
+      
+      /* Preload dark theme to prevent flash */
+      html.dark {
+        background-color: #0f0f1a;
+      }
+    </style>
+    <!-- Theme initialization script -->
+    <script>
+      // Set initial theme before React loads
+      (function() {
+        try {
+          // Check localStorage for theme preference
+          const savedTheme = localStorage.getItem('vite-ui-theme');
+          
+          // If no saved theme, check system preference
+          const systemPrefersDark = window.matchMedia && 
+            window.matchMedia('(prefers-color-scheme: dark)').matches;
+          
+          // Apply dark theme by default or based on preference
+          if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+            document.documentElement.classList.add('dark');
+          } else if (savedTheme === 'light') {
+            document.documentElement.classList.remove('dark');
+          } else {
+            // Default to dark theme
+            document.documentElement.classList.add('dark');
+          }
+        } catch (e) {
+          // Fallback to dark theme
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
+  </head>
+
+  <body class="dark">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
