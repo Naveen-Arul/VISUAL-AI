@@ -18,7 +18,7 @@ def text_to_speech(text: str) -> str:
 
     payload = {
         "text": text,
-        "model_id": "eleven_monolingual_v1"
+        "model_id": "eleven_multilingual_v2"
     }
 
     response = requests.post(url, headers=headers, json=payload)
