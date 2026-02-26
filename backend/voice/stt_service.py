@@ -15,8 +15,12 @@ def transcribe_audio(audio_bytes: bytes) -> str:
     files = {
         "file": ("audio.wav", audio_bytes, "audio/wav")
     }
+    
+    data = {
+        "model_id": "scribe_v1"
+    }
 
-    response = requests.post(url, headers=headers, files=files)
+    response = requests.post(url, headers=headers, files=files, data=data)
 
     if response.status_code != 200:
         raise Exception(f"STT failed: {response.text}")
