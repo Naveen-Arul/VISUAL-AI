@@ -344,6 +344,17 @@ const Voice = () => {
                         <div className="lg:col-span-2 space-y-6">
                             {currentStep === 'complete' && transcript && analysis ? (
                                 <>
+                                    {/* Full Transcript (Collapsible or Scrollable) */}
+                                    <div className="p-6 rounded-2xl bg-card border border-border/50 shadow-lg mb-6">
+                                        <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
+                                            <FileText className="w-5 h-5 text-primary" />
+                                            Full Transcript
+                                        </h3>
+                                        <div className="p-4 rounded-xl bg-background/50 border border-border text-sm text-foreground max-h-64 overflow-y-auto whitespace-pre-wrap leading-relaxed font-mono">
+                                            {transcript}
+                                        </div>
+                                    </div>
+
                                     {/* Summary & Audio Playback Card */}
                                     <div className="p-6 rounded-2xl bg-card border border-border/50 shadow-lg relative overflow-hidden group">
                                         {/* Decorative gradient overlay */}
@@ -448,17 +459,6 @@ const Voice = () => {
                                             </div>
                                         </div>
                                     )}
-
-                                    {/* Full Transcript (Collapsible or Scrollable) */}
-                                    <div className="p-6 rounded-2xl bg-card border border-border/50 shadow-lg">
-                                        <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
-                                            <FileText className="w-5 h-5 text-primary" />
-                                            Full Transcript
-                                        </h3>
-                                        <div className="p-4 rounded-xl bg-background/50 border border-border text-sm text-foreground max-h-64 overflow-y-auto whitespace-pre-wrap leading-relaxed font-mono">
-                                            {transcript}
-                                        </div>
-                                    </div>
 
                                 </>
                             ) : (
