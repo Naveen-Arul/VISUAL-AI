@@ -68,7 +68,8 @@ Rules:
 1. "keywords" must be an array of top 10 most relevant single words or short phrases.
 2. "timeline" must break the transcript down into 2-5 major sequential logical segments with estimated fake timestamps like 00:00, 02:15, 05:40 based on conversational flow if real ones don't exist.
 3. "speaker_tasks" uses heuristic mapping even without true diarization to guess who does what (e.g. Person 1, Team, Specific names).
-4. Return ONLY valid JSON block.
+4. CRITICAL: All textual values in the JSON (summary, reasonings, topics, keywords, emotion types, etc.) MUST be written in the EXACT SAME LANGUAGE as the provided transcript. Do not translate them to English.
+5. Return ONLY valid JSON block.
 """
 
     response = client.chat.completions.create(
