@@ -4,17 +4,24 @@ import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
-import { Mic, Square, Play, Sparkles, Volume2, Globe, Clock, BarChart3, ListTodo, AlertTriangle, FileText, Bot } from 'lucide-react';
+import { Mic, Square, Play, Sparkles, Volume2, Globe, Clock, BarChart3, ListTodo, AlertTriangle, FileText, Bot, Download, FileJson, Check, Pencil, Users, Hash, MapPin } from 'lucide-react';
 
 interface VoiceAnalysis {
     summary?: string;
     action_items?: any[];
     sentiment?: string;
+    intensity?: string;
+    emotion_type?: string;
     sentiment_reasoning?: string;
     confidence_score?: number;
     confidence_reasoning?: string;
     urgency?: string;
+    risk_level?: string;
+    risk_reasoning?: string;
     topics?: string[];
+    keywords?: string[];
+    speaker_tasks?: any[];
+    timeline?: any[];
     error?: string;
 }
 
@@ -35,6 +42,8 @@ const Voice = () => {
     const [analysis, setAnalysis] = useState<VoiceAnalysis | null>(null);
     const [ttsAudioBase64, setTtsAudioBase64] = useState<string | null>(null);
     const [isPlayingTts, setIsPlayingTts] = useState(false);
+    const [isEditingSummary, setIsEditingSummary] = useState(false);
+    const [editedSummary, setEditedSummary] = useState('');
 
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const chunksRef = useRef<BlobPart[]>([]);
@@ -137,6 +146,7 @@ const Voice = () => {
             const analyzeStart = performance.now();
             const analyzeRes = await api.analyzeTranscript(transcribedText);
             setAnalysis(analyzeRes);
+            setEditedSummary(analyzeRes.summary || '');
             const analyzeTime = Math.round(performance.now() - analyzeStart);
 
             setCurrentStep('complete');
@@ -159,6 +169,42 @@ const Voice = () => {
         }
     };
 
+    const highlightTranscript = (text: string) => {
+        if (!text) return text;
+        const keywords = ['asap', 'by friday', 'by monday', 'tomorrow', 'urgent', 'immediately', 'complete by', 'send proposal', 'deadline'];
+        const regex = new RegExp(`\\b(${keywords.join('|')})\\b`, 'gi');
+
+        const parts = text.split(regex);
+        return parts.map((part, i) =>
+            regex.test(part) ? <span key={i} className="bg-primary/20 text-primary font-bold px-1 rounded">{part}</span> : part
+        );
+    };
+
+    const downloadAsTxt = () => {
+        if (!analysis) return;
+        const text = `EXECUTIVE SUMMARY\n${editedSummary || analysis.summary}\n\nACTION ITEMS\n${analysis.action_items?.map(i => `- ${i.task} (${i.responsible})`).join('\n')}`;
+        const blob = new Blob([text], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'meeting_summary.txt';
+        a.click();
+    };
+
+    const downloadAsJson = () => {
+        if (!analysis) return;
+        const blob = new Blob([JSON.stringify({ ...analysis, summary: editedSummary || analysis.summary }, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'meeting_analysis.json';
+        a.click();
+    };
+
+    const downloadAsPdf = () => {
+        window.print();
+    };
+
     const handlePlayTTS = async () => {
         if (!transcript) return;
         if (isPlayingTts && ttsAudioRef.current) {
@@ -176,7 +222,7 @@ const Voice = () => {
         setIsPlayingTts(true);
         try {
             toast({ title: 'Generating audio...' });
-            const res = await api.textToSpeech(analysis?.summary || transcript);
+            const res = await api.textToSpeech(editedSummary || analysis?.summary || transcript);
             setTtsAudioBase64(res.audio_base64);
 
             const audio = new Audio("data:audio/mpeg;base64," + res.audio_base64);
@@ -350,14 +396,13 @@ const Voice = () => {
                                             <FileText className="w-5 h-5 text-primary" />
                                             Full Transcript
                                         </h3>
-                                        <div className="p-4 rounded-xl bg-background/50 border border-border text-sm text-foreground max-h-64 overflow-y-auto whitespace-pre-wrap leading-relaxed font-mono">
-                                            {transcript}
+                                        <div className="p-4 rounded-xl bg-background/50 border border-border text-sm text-foreground whitespace-pre-wrap leading-relaxed font-mono">
+                                            {highlightTranscript(transcript)}
                                         </div>
                                     </div>
 
                                     {/* Summary & Audio Playback Card */}
                                     <div className="p-6 rounded-2xl bg-card border border-border/50 shadow-lg relative overflow-hidden group">
-                                        {/* Decorative gradient overlay */}
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl -mr-16 -mt-16 transition-all group-hover:bg-primary/10" />
 
                                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 relative z-10">
@@ -366,42 +411,100 @@ const Voice = () => {
                                                     <Bot className="w-6 h-6 text-primary" />
                                                     Executive Summary
                                                 </h3>
-                                                <p className="text-sm text-muted-foreground mt-1">Generated by LLaMA 3.1</p>
+                                                <p className="text-sm text-muted-foreground mt-1">Generated by AI • Human-in-the-loop Editing Supported</p>
                                             </div>
 
-                                            <div className="flex items-center gap-3">
-                                                {audioUrl && (
-                                                    <audio controls src={audioUrl} className="h-10 w-48 hidden sm:block grayscale contrast-125 sepia-0 invert" style={{ borderRadius: '4px' }} />
-                                                )}
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <Button variant="outline" size="sm" onClick={downloadAsTxt} className="h-8 gap-1"><FileText className="w-3 h-3" /> TXT</Button>
+                                                <Button variant="outline" size="sm" onClick={downloadAsJson} className="h-8 gap-1"><FileJson className="w-3 h-3" /> JSON</Button>
+                                                <Button variant="outline" size="sm" onClick={downloadAsPdf} className="h-8 gap-1"><Download className="w-3 h-3" /> PDF</Button>
                                                 <Button
                                                     variant="secondary"
+                                                    size="sm"
                                                     onClick={handlePlayTTS}
-                                                    className="flex items-center gap-2 border border-border/50 hover:border-primary/50 text-primary"
+                                                    className="h-8 flex items-center gap-2 border border-border/50 hover:border-primary/50 text-primary"
                                                 >
-                                                    {isPlayingTts ? <Square className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                                                    {isPlayingTts ? 'Stop TTS' : 'Play Summary'}
+                                                    {isPlayingTts ? <Square className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
+                                                    {isPlayingTts ? 'Stop' : 'Play'}
                                                 </Button>
                                             </div>
                                         </div>
 
-                                        <div className="p-4 rounded-xl bg-background/50 border border-border leading-relaxed text-foreground relative z-10">
-                                            {analysis.summary || 'No summary generated.'}
+                                        <div className="p-4 rounded-xl bg-background/50 border border-border leading-relaxed text-foreground relative z-10 group/edit transition-all">
+                                            <div className="flex justify-end mb-2">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-6 text-xs text-muted-foreground hover:text-primary opacity-50 sm:opacity-0 sm:group-hover/edit:opacity-100 transition-opacity absolute top-2 right-2"
+                                                    onClick={() => setIsEditingSummary(!isEditingSummary)}
+                                                >
+                                                    {isEditingSummary ? <Check className="w-3 h-3 mr-1" /> : <Pencil className="w-3 h-3 mr-1" />}
+                                                    {isEditingSummary ? 'Save' : 'Edit'}
+                                                </Button>
+                                            </div>
+                                            {isEditingSummary ? (
+                                                <textarea
+                                                    className="w-full bg-background border border-primary/50 rounded-lg p-3 min-h-[100px] text-sm focus:ring-1 focus:ring-primary outline-none resize-y"
+                                                    value={editedSummary}
+                                                    onChange={(e) => setEditedSummary(e.target.value)}
+                                                />
+                                            ) : (
+                                                <p className="mt-2">{editedSummary || analysis.summary || 'No summary generated.'}</p>
+                                            )}
                                         </div>
                                     </div>
 
+                                    {/* Timeline UI */}
+                                    {analysis.timeline && analysis.timeline.length > 0 && (
+                                        <div className="p-6 rounded-2xl bg-card border border-border/50 shadow-lg relative overflow-hidden">
+                                            <h3 className="text-lg font-semibold flex items-center gap-2 mb-6">
+                                                <Clock className="w-5 h-5 text-primary" />
+                                                Structured Meeting Timeline
+                                            </h3>
+                                            <div className="relative pl-6 border-l-2 border-primary/20 space-y-8">
+                                                {analysis.timeline.map((item: any, idx: number) => (
+                                                    <div key={idx} className="relative">
+                                                        <div className="absolute -left-[31px] top-1 w-3.5 h-3.5 bg-background border-2 border-primary rounded-full z-10" />
+                                                        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-2">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="px-2 py-0.5 rounded text-xs font-mono font-medium bg-primary/10 text-primary border border-primary/20">
+                                                                    {item.start_time || "00:00"}
+                                                                </span>
+                                                                <span className="font-semibold text-foreground text-sm lg:text-base">{item.topic}</span>
+                                                            </div>
+                                                            {item.emotion && (
+                                                                <span className="text-[10px] lg:text-xs px-2 py-0.5 rounded-full bg-secondary text-muted-foreground flex items-center gap-1 w-fit">
+                                                                    <MapPin className="w-3 h-3" /> {item.emotion}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        {item.reasoning && (
+                                                            <p className="text-sm text-muted-foreground mt-1 bg-background/50 p-3 rounded-lg border border-border/50 shadow-sm inline-block w-full">
+                                                                {item.reasoning}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
                                     {/* Grid for Metrics */}
-                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                                         <div className="p-5 rounded-xl bg-card border border-border/50 flex flex-col hover:border-primary/30 transition-colors">
                                             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5"><BarChart3 className="w-3.5 h-3.5" /> Sentiment</span>
                                             <span className={`text-xl font-bold ${analysis.sentiment?.toLowerCase() === 'negative' ? 'text-destructive' : analysis.sentiment?.toLowerCase() === 'positive' ? 'text-success' : 'text-info'}`}>
                                                 {analysis.sentiment || 'Unknown'}
                                             </span>
+                                            {analysis.intensity && <span className="text-xs text-muted-foreground mt-2 font-medium">Intensity: <span className="text-foreground">{analysis.intensity}</span></span>}
+                                            {analysis.emotion_type && <span className="text-xs text-muted-foreground mt-0.5 font-medium">Emotion: <span className="text-foreground">{analysis.emotion_type}</span></span>}
                                         </div>
                                         <div className="p-5 rounded-xl bg-card border border-border/50 flex flex-col hover:border-primary/30 transition-colors">
-                                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5"><AlertTriangle className="w-3.5 h-3.5" /> Urgency</span>
-                                            <span className={`text-xl font-bold ${analysis.urgency?.toLowerCase() === 'high' ? 'text-destructive' : analysis.urgency?.toLowerCase() === 'medium' ? 'text-warning' : 'text-success'}`}>
-                                                {analysis.urgency || 'Normal'}
+                                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5"><AlertTriangle className="w-3.5 h-3.5" /> Risk Level</span>
+                                            <span className={`text-xl font-bold ${analysis.risk_level?.toLowerCase() === 'high' ? 'text-destructive' : analysis.risk_level?.toLowerCase() === 'medium' ? 'text-warning' : 'text-success'}`}>
+                                                {analysis.risk_level || 'Low'}
                                             </span>
+                                            {analysis.risk_reasoning && <span className="text-xs text-muted-foreground mt-2 line-clamp-2" title={analysis.risk_reasoning}>{analysis.risk_reasoning}</span>}
                                         </div>
                                         <div className="p-5 rounded-xl bg-card border border-border/50 flex flex-col hover:border-primary/30 transition-colors">
                                             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5" /> Confidence</span>
@@ -416,49 +519,76 @@ const Voice = () => {
                                         </div>
                                     </div>
 
-                                    {/* Action Items */}
-                                    {analysis.action_items && analysis.action_items.length > 0 && (
-                                        <div className="p-6 rounded-2xl bg-card border border-border/50 shadow-lg">
-                                            <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
-                                                <ListTodo className="w-5 h-5 text-primary" />
-                                                Action Items
-                                            </h3>
-                                            <div className="space-y-3">
-                                                {analysis.action_items.map((item: any, idx: number) => (
-                                                    <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg bg-background/50 border border-border/40 gap-3">
-                                                        <div className="flex items-start gap-3 flex-1">
-                                                            <div className="mt-0.5 min-w-[20px]">
-                                                                <div className="w-5 h-5 rounded-full border-2 border-primary/40" />
-                                                            </div>
-                                                            <div>
-                                                                <div className="font-medium">{item.task || item}</div>
-                                                                {item.responsible && <div className="text-xs text-muted-foreground mt-1">Assigned to: <span className="text-info font-medium">{item.responsible}</span></div>}
+                                    <div className="grid lg:grid-cols-2 gap-6">
+                                        {/* Action Items */}
+                                        {analysis.action_items && analysis.action_items.length > 0 && (
+                                            <div className="p-6 rounded-2xl bg-card border border-border/50 shadow-lg h-full">
+                                                <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
+                                                    <ListTodo className="w-5 h-5 text-primary" />
+                                                    Action Items
+                                                </h3>
+                                                <div className="space-y-3">
+                                                    {analysis.action_items.map((item: any, idx: number) => (
+                                                        <div key={idx} className="flex flex-col p-3 rounded-lg bg-background/50 border border-border/40 gap-2">
+                                                            <div className="font-medium text-sm text-foreground">{item.task || item}</div>
+                                                            <div className="flex items-center justify-between text-xs mt-1">
+                                                                {item.responsible && <span className="text-info font-medium flex items-center gap-1"><Users className="w-3 h-3" /> {item.responsible}</span>}
+                                                                {item.deadline && <span className="px-2 py-0.5 rounded-full bg-secondary font-medium">{item.deadline}</span>}
                                                             </div>
                                                         </div>
-                                                        {item.deadline && (
-                                                            <div className="px-3 py-1 rounded-full bg-secondary text-xs font-medium whitespace-nowrap">
-                                                                {item.deadline}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                ))}
+                                                    ))}
+                                                </div>
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
 
-                                    {/* Topics Tags */}
-                                    {analysis.topics && analysis.topics.length > 0 && (
-                                        <div className="p-6 rounded-2xl bg-card border border-border/50 shadow-lg">
-                                            <span className="text-sm font-semibold text-muted-foreground mb-3 block uppercase tracking-wider">Detected Topics</span>
-                                            <div className="flex flex-wrap gap-2">
-                                                {analysis.topics.map((topic: string, i: number) => (
-                                                    <span key={i} className="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm border border-primary/20">
-                                                        {topic}
-                                                    </span>
-                                                ))}
+                                        {/* Speaker Task Mapping */}
+                                        {analysis.speaker_tasks && analysis.speaker_tasks.length > 0 && (
+                                            <div className="p-6 rounded-2xl bg-card border border-border/50 shadow-lg h-full">
+                                                <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
+                                                    <Users className="w-5 h-5 text-primary" />
+                                                    Speaker Task Mapping
+                                                </h3>
+                                                <div className="space-y-3">
+                                                    {analysis.speaker_tasks.map((item: any, idx: number) => (
+                                                        <div key={idx} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-lg bg-background/50 border border-border/40">
+                                                            <span className="font-semibold text-foreground text-sm flex items-center gap-2 min-w-[100px]">
+                                                                <div className="w-2 h-2 rounded-full bg-primary" /> {item.person}
+                                                            </span>
+                                                            <span className="text-sm text-muted-foreground border-l border-border/50 pl-3">{item.task}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
+                                    </div>
+
+                                    {/* Keyword Cloud & Topics */}
+                                    <div className="grid lg:grid-cols-2 gap-6">
+                                        {analysis.keywords && analysis.keywords.length > 0 && (
+                                            <div className="p-6 rounded-2xl bg-card border border-border/50 shadow-lg">
+                                                <span className="text-sm font-semibold text-muted-foreground mb-4 flex items-center gap-1.5 uppercase tracking-wider"><Hash className="w-4 h-4" /> Keyword Cloud</span>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {analysis.keywords.map((kw: string, i: number) => (
+                                                        <span key={i} className="px-3 py-1.5 rounded bg-secondary/50 hover:bg-secondary cursor-default transition-colors text-foreground text-sm border border-border/50 font-medium">
+                                                            {kw}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                        {analysis.topics && analysis.topics.length > 0 && (
+                                            <div className="p-6 rounded-2xl bg-card border border-border/50 shadow-lg">
+                                                <span className="text-sm font-semibold text-muted-foreground mb-4 flex items-center gap-1.5 uppercase tracking-wider"><Sparkles className="w-4 h-4" /> Topics</span>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {analysis.topics.map((topic: string, i: number) => (
+                                                        <span key={i} className="px-3 py-1.5 rounded-full bg-primary/10 text-primary font-medium text-sm border border-primary/20">
+                                                            {topic}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
 
                                 </>
                             ) : (

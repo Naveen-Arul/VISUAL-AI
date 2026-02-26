@@ -11,15 +11,12 @@ def analyze_transcript(transcript: str) -> dict:
     prompt = f"""
 You are a privacy-first multilingual AI voice intelligence system.
 
-Analyze transcript and return structured JSON.
+Analyze the following transcript and return strictly structured JSON format representing a detailed meeting or recording analysis.
+Estimate timestamps (format MM:SS) based on the relative logical progression of the discussion (e.g., 00:00 for Intro, 02:00 for the next topic, etc.) if true timestamps are missing.
 
-Example:
-Transcript:
-"Priya will complete the report by Monday. We are behind schedule and this is urgent."
-
-Output:
+Return EXACTLY the following JSON structure:
 {{
-  "summary": "Priya will complete the report by Monday. The team is behind schedule and considers the task urgent.",
+  "summary": "Detailed overall summary of the recording.",
   "action_items": [
     {{
       "task": "Complete report",
@@ -28,17 +25,50 @@ Output:
     }}
   ],
   "sentiment": "Negative",
-  "sentiment_reasoning": "Phrase 'behind schedule' indicates stress.",
+  "intensity": "8.5 / 10",
+  "emotion_type": "Frustration",
+  "sentiment_reasoning": "Reason behind this emotion.",
   "confidence_score": 88,
-  "confidence_reasoning": "Clear urgency language supports negative sentiment.",
+  "confidence_reasoning": "Clear urgency language.",
   "urgency": "High",
-  "topics": ["Project Planning"]
+  "risk_level": "High",
+  "risk_reasoning": "Missed deadline and tight budget constraints.",
+  "topics": ["Project Planning", "Budget"],
+  "keywords": ["Deadline", "Budget", "Deployment", "API", "Frustration"],
+  "speaker_tasks": [
+    {{
+      "person": "Priya",
+      "task": "Report"
+    }},
+    {{
+      "person": "Arjun",
+      "task": "Backend integration"
+    }}
+  ],
+  "timeline": [
+    {{
+      "start_time": "00:00",
+      "topic": "Introduction",
+      "emotion": "Neutral",
+      "reasoning": "Standard greeting"
+    }},
+    {{
+      "start_time": "02:15",
+      "topic": "Budget Discussion",
+      "emotion": "Concern",
+      "reasoning": "Discussing cost overruns"
+    }}
+  ]
 }}
 
-Now analyze:
+Transcript to analyze:
 {transcript}
 
-Return JSON only.
+Rules:
+1. "keywords" must be an array of top 10 most relevant single words or short phrases.
+2. "timeline" must break the transcript down into 2-5 major sequential logical segments with estimated fake timestamps like 00:00, 02:15, 05:40 based on conversational flow if real ones don't exist.
+3. "speaker_tasks" uses heuristic mapping even without true diarization to guess who does what (e.g. Person 1, Team, Specific names).
+4. Return ONLY valid JSON block.
 """
 
     response = client.chat.completions.create(
