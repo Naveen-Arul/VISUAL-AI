@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Brain, Home, Layers } from 'lucide-react';
+import { Brain, Home, Layers, Eye, Mic } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const Header = () => {
@@ -7,6 +7,8 @@ export const Header = () => {
 
   const navItems = [
     { path: '/', label: 'Home', icon: Home },
+    { path: '/vision', label: 'Vision AI', icon: Eye },
+    { path: '/voice', label: 'Voice AI', icon: Mic },
     { path: '/project', label: 'Dashboard', icon: Layers },
   ];
 

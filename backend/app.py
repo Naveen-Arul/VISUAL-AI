@@ -20,7 +20,11 @@ except ImportError:
     LLaMA_AVAILABLE = False
     print("LLaMA explainer not available. Install required dependencies for full functionality.")
 
+from routes.voice_routes import router as voice_router
+
 app = FastAPI(title="Multimodal Visual Scene Understanding System")
+
+app.include_router(voice_router)
 
 # Add CORS middleware
 app.add_middleware(

@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Sparkles, Eye, Brain, MessageSquare, Zap, Cpu, Globe, Code, Linkedin, Github, Link } from 'lucide-react';
+import { ArrowRight, Sparkles, Eye, Mic, Brain, MessageSquare, Zap, Cpu, Globe, Code, Linkedin, Github, Link } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export const HeroSection = () => {
@@ -46,18 +46,32 @@ export const HeroSection = () => {
             <Button
               variant="hero"
               size="xl"
-              onClick={() => navigate('/project')}
-              className="group"
+              onClick={() => navigate('/vision')}
+              className="group bg-primary hover:bg-primary/90"
             >
-              Get Started
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              <Eye className="w-5 h-5 mr-2" />
+              Try Vision AI
+              <ArrowRight className="w-5 h-5 ml-2 opacity-70 group-hover:translate-x-1 transition-all" />
             </Button>
             <Button
-              variant="glass"
-              size="lg"
+              variant="hero"
+              size="xl"
+              onClick={() => navigate('/voice')}
+              className="group bg-info hover:bg-info/90 shadow-lg shadow-info/20 text-info-foreground border-transparent"
+            >
+              <Mic className="w-5 h-5 mr-2" />
+              Try Voice AI
+              <ArrowRight className="w-5 h-5 ml-2 opacity-70 group-hover:translate-x-1 transition-all" />
+            </Button>
+          </div>
+
+          <div className="mt-8 animate-slide-up" style={{ animationDelay: '0.3s' }}>
+            <Button
+              variant="ghost"
+              className="text-muted-foreground hover:text-foreground"
               onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
             >
-              Learn More
+              Learn more about our capabilities
             </Button>
           </div>
         </div>

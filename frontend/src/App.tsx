@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Project from "./pages/Project";
+import Voice from "./pages/Voice";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -15,12 +16,12 @@ const App = () => {
   useEffect(() => {
     // Set background color to match dark theme
     document.body.style.backgroundColor = '#0f0f1a';
-    
+
     // Ensure dark class is present
     if (!document.documentElement.classList.contains('dark')) {
       document.documentElement.classList.add('dark');
     }
-    
+
     // Listen for theme changes
     const observer = new MutationObserver(() => {
       if (!document.documentElement.classList.contains('dark')) {
@@ -28,15 +29,15 @@ const App = () => {
         document.body.style.backgroundColor = '#0f0f1a';
       }
     });
-    
+
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ['class']
     });
-    
+
     return () => observer.disconnect();
   }, []);
-  
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -46,6 +47,8 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/project" element={<Project />} />
+            <Route path="/vision" element={<Project />} />
+            <Route path="/voice" element={<Voice />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
