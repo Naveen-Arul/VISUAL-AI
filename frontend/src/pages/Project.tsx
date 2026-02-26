@@ -67,7 +67,7 @@ const Project = () => {
       const response = await fetch(imageUrl);
       const blob = await response.blob();
       const file = new File([blob], `${imageName.toLowerCase().replace(' ', '-')}.jpg`, { type: 'image/jpeg' });
-      
+
       // Create preview
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -75,7 +75,7 @@ const Project = () => {
         handleImageSelect(file, preview);
       };
       reader.readAsDataURL(blob);
-      
+
       toast({
         title: 'Sample Image Loaded',
         description: `${imageName} is ready for analysis.`,
@@ -102,7 +102,7 @@ const Project = () => {
       const detectionResult = await api.detectObjects(imageFile);
       const detectionTime = Math.round(performance.now() - detectionStart);
       setProcessingTimes(prev => ({ ...prev, detection: detectionTime }));
-      
+
       setCurrentStep('analysis');
 
       // Step 2: Scene Analysis
@@ -207,9 +207,16 @@ const Project = () => {
   const isProcessing = currentStep !== 'idle' && currentStep !== 'complete';
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col relative overflow-hidden">
+      {/* Background Image & Effects */}
+      <div className="absolute inset-0 z-[-1] bg-background/90 backdrop-blur-md" />
+      <div
+        className="absolute inset-0 z-[-2] bg-cover bg-center bg-fixed bg-no-repeat opacity-20 mix-blend-luminosity"
+        style={{ backgroundImage: 'url(/waves-bg.png)' }}
+      />
+
       <Header />
-      <main className="flex-1 pt-16">
+      <main className="flex-1 pt-16 relative z-10">
         <div className="container mx-auto px-4 py-8">
           {/* Page Header */}
           <div className="mb-8">
@@ -259,15 +266,15 @@ const Project = () => {
 
               {/* Demo Images */}
               {!imagePreview && (
-                <DemoImageSelector 
+                <DemoImageSelector
                   onSelectDemo={handleDemoSelect}
                   isProcessing={isProcessing}
                 />
               )}
 
               {/* Processing Steps */}
-              <ProcessingSteps 
-                currentStep={currentStep} 
+              <ProcessingSteps
+                currentStep={currentStep}
                 error={error}
                 processingTimes={processingTimes}
               />
@@ -311,7 +318,7 @@ const Project = () => {
                       Ready to Analyze
                     </h3>
                     <p className="text-muted-foreground mb-6">
-                      Upload an image to see AI-powered object detection, 
+                      Upload an image to see AI-powered object detection,
                       scene analysis, and natural language explanations.
                     </p>
                     <div className="flex flex-wrap justify-center gap-2 text-xs text-muted-foreground">

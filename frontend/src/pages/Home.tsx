@@ -9,9 +9,16 @@ import { VoiceIntelligenceSection } from '@/components/home/VoiceIntelligenceSec
 
 const Home = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Global Background Image & Effects */}
+      <div className="fixed inset-0 z-[-1] bg-background/80 backdrop-blur-sm" />
+      <div
+        className="fixed inset-0 z-[-2] bg-cover bg-center bg-no-repeat opacity-20 mix-blend-luminosity"
+        style={{ backgroundImage: 'url(/waves-bg.png)' }}
+      />
+
       <Header />
-      <main className="pt-16">
+      <main className="pt-16 relative z-10">
         <HeroSection />
         <ProjectOverviewSection />
         <VoiceIntelligenceSection />
