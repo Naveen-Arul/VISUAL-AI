@@ -1,7 +1,7 @@
 # Multimodal Visual Scene Understanding System
 uvicorn app:app --reload
 A Multimodal AI System using Computer Vision, BERT, and LLaMA for visual scene understanding and explanation.
-
+BACKEND ARCHITECT
 ## System Architecture
 
 ```mermaid
